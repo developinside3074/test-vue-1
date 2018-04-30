@@ -26,10 +26,16 @@ Vue.use(Blockui);
 
 //modulos y tipos
 import globalTypes from '@/types/global';
+import authModule from '@/modules/auth';
 //.modulos y tipos
 
 //vue-validate
 import VeeValidate, {Validator} from 'vee-validate';
+import validatorEs from '@/validator/es';
+import validatorEn from '@/validator/en';
+Validator.localize('es', validatorEs);
+
+
 Vue.use(VeeValidate);
 //.vee-validate
 
@@ -46,24 +52,63 @@ export const store = new Vuex.Store({
   },
 
   actions:{
-    
+   [globalTypes.actions.changeLanguage]:({commit}, lang) =>{
+     commit(globalTypes.mutations.setLanguage, lang);
+     switch (lang) {
+       case 'en':{
+        Validator.localize('en', validatorEn);
+        break;
+       }
+       
+       case 'es':{
+        Validator.localize('es', validatorEs); 
+        break;
+       }       
+     }
+   }
 
   },
+
+  getters:{
+    [globalTypes.getters.processing]: state => state.processing,
+    [globalTypes.getters.language]: state => state.language,
+  },
+
   mutations:{
+    [globalTypes.mutations.startProcessing] (state){
+      state.processing = true;
+    },
+    [globalTypes.mutations.stopProcessing] (state){
+      state.processing = false;
+    },
+  [globalTypes.mutations.setLanguage] (state, lang){
+    state.language = lang;
+  }
 
   },
 
   modules:{
+    authModule
 
   }
 
 });
 
-//.global store
+//.global store (almacen de datos con vuex)
 
+//vue traducciones
+import VueI18n from 'vue-i18n';
+Vue.use(VueI18n);
+import messages from '@/translations';
+const i18n = new VueI18n({
+  locale: store.state.language,
+  messages
+});
+//.vue traducciones
 
 new Vue({
   el: '#app',
   render: h => h(App),
-  store
-})
+  store,
+  i18n
+});
